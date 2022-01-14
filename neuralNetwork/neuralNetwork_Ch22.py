@@ -1266,7 +1266,10 @@ def load_mnist_dataset(dataset, path):
 
     # Scan all the directories and create a list of lables
     print('Scanning all directories and creating a list of lables')
-    labels = os.listdir('fashion_mnist_images/train')
+    labels = os.listdir(os.path.join(path, dataset))
+
+    #labels.sort()
+    #print(labels[1:])
 
     # Create lists for samples and lables
     X = []
@@ -1274,12 +1277,18 @@ def load_mnist_dataset(dataset, path):
 
     # For each lable folder
     print('Reading the image')
-    for label in labels:
+    # I had to use labels[1:] because there is an invisible file 
+    # .DS_Store in the folder that kept creating NotADirectoryError: [Errno 20]
+    for label in labels[1:]:
         # And for each image in given folder
-        for file in os.listdir(os.path.join('fashion_mnist_images', 'train', label)):
+        for file in os.listdir(os.path.join(
+            path, dataset, label
+            )):
+
             # Read the image
-            
-            image = cv2.imread(os.path.join('fashion_mnist_images/train', label, file), cv2.IMREAD_UNCHANGED)
+            image = cv2.imread(os.path.join(
+                 path, dataset, label, file
+                 ), cv2.IMREAD_UNCHANGED)
 
             # And append it and a label to the lists
             X.append(image)
@@ -1312,11 +1321,6 @@ def create_data_mnist(path):
 ##################################################################################################################  
 # Input data
 ##################################################################################################################  
-'''
-# using grenerated data as the source for input data - training data. 
-X,y = spiral_data(samples = 100, classes = 2)
-X_test,y_test = spiral_data(samples = 100, classes = 2)
-'''
 
 # we can load our data by doing
 X, y, X_test, y_test = create_data_mnist('fashion_mnist_images')
@@ -1438,14 +1442,31 @@ model.set_parameters(parameters)
 # Saving and loading the model
 
 # Save model
-model.save('fashion_mnist.model')
+#model.save('fashion_mnist.model')
+
+#############################################################################################################################################
+# Present the name of the prediction
+
+# I will need to change this according to the parkour move that I want the system to recognise
+fashion_mnist_labels = {
+    0: 'T-shirt/top',
+    1: 'Trouser',
+    2: 'Pullover',
+    3: 'Dress', 
+    4: 'Coat',
+    5: 'Sandal',
+    6: 'Shirt',
+    7: 'Sneaker',
+    8: 'Bag',
+    9: 'Ankle boot'
+}
 
 
 ##################################################################################################################  
 # Get image for prediction
 
 # get image data and change it to grey scale
-image_data = cv2.imread('prediction_images/McQueen_Check_Sherpa.jpg', cv2.IMREAD_GRAYSCALE)
+image_data = cv2.imread('prediction_images/pants.png', cv2.IMREAD_GRAYSCALE)
 
 # Resize the plot so that it is the same size as the test data images
 image_data = cv2.resize(image_data, (28, 28))
@@ -1459,7 +1480,7 @@ image_data = (image_data.reshape(1, -1).astype(np.float32)) - 127.5 /127.5
 
 ##################################################################################################################  
 # Load model
-#model = Model.load('fashion_mnist.model')
+model = Model.load('fashion_mnist.model')
 
 # Evaluate the model
 #model.evaluate(X_test, y_test) 
@@ -1486,28 +1507,13 @@ predictions = model.output_layer_activation.predictions(confidences)
 
 
 
-#############################################################################################################################################
-# Present the name of the prediction
 
-# I will need to change this according to the parkour move that I want the system to recognise
-fashion_mnist_labels = {
-    0: 'T-shirt/top',
-    1: 'Trouser',
-    2: 'Pullover',
-    3: 'Dress', 
-    4: 'Coat',
-    5: 'Sandal',
-    6: 'Shirt',
-    7: 'Sneaker',
-    8: 'Bag',
-    9: 'Ankle boot'
-}
 
-for prediction in predictions:
-    print(fashion_mnist_labels[prediction])
+# Get label name from label index
+prediction = fashion_mnist_labels[predictions[0]]
 
-# Print first 5 labels
-#print(y_test[:5])
+print(prediction)
+
 
 
 
